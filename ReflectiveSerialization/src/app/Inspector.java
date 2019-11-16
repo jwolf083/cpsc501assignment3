@@ -7,12 +7,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Inspector {
+	BitSet inspected_objs = new BitSet();
 
     public void inspect(Object obj, boolean recursive) {
+    	inspected_objs = new BitSet();
         Class<?> c = obj.getClass();
         inspectClass(c, obj, recursive, 0);
     }
@@ -25,12 +28,13 @@ public class Inspector {
     private void inspectClass(Class<?> c, Object obj, boolean recursive, int depth) {
     	String indent = getTabs(depth);
     	
+    	inspected_objs.set(System.identityHashCode(obj));
     	System.out.println("Entering new class with depth: " + depth);
     	if (c.isArray()) {
     		inspectArray(c, obj, recursive, depth);
     	} else {
     		System.out.println(indent + "Declaring Class Name: " 
-    					+ Modifier.toString(c.getModifiers()) + " " + c.getCanonicalName());
+    					+ Modifier.toString(c.getModifiers()) + " " + c.getCanonicalName() + "@"+ System.identityHashCode(obj));
     	}
     	inspectSuperClass(c, obj, depth);
     	inspectInterfaces(c, obj, depth);
@@ -167,7 +171,8 @@ public class Inspector {
 			if (isWrapperType(obj_class)) {
     			System.out.println(indent + " Value: " + obj);
     		} else {
-    			if (recursive) {
+    			if (recursive && !inspected_objs.get(System.identityHashCode(obj))) {
+    				inspected_objs.set(System.identityHashCode(obj));
         			System.out.println(indent + " Value: ");
         			inspectClass(obj_class, obj, true, depth + 1);
         		} else {

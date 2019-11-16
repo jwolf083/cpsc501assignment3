@@ -14,13 +14,16 @@ import org.jdom2.output.XMLOutputter;
 
 
 public class Serializer {
-	private BitSet serialized_object_ids = new BitSet();
-	private Queue referenced_objects = new Queue(); 
+	private BitSet serialized_object_ids;
+	private Queue referenced_objects; 
 	
 	public Document serialize(Object obj) {
 		Element root = new Element("serialized");
 		Document document = new Document(root);
 		Object next_obj = obj;
+		
+		serialized_object_ids = new BitSet();
+		referenced_objects = new Queue();
 
 		serialized_object_ids.set(System.identityHashCode(next_obj));
 		while (next_obj != null) {
@@ -192,51 +195,6 @@ public class Serializer {
         ret.add(Double.class);
         ret.add(Void.class);
         return ret;
-    }
-    
-    public static void main(String[] args) {
-    	Inspector i = new Inspector();
-    	Serializer s = new Serializer();
-    	Deserializer de = new Deserializer();
-    	//s.serialize(new Simple());
-    	ReferenceGraph r = new ReferenceGraph();
-    	//PrimitiveArray a = new PrimitiveArray();
-    	GraphNode[] g;
-    	GraphNode a = new GraphNode(0, true);
-		GraphNode b = new GraphNode(1, false);
-		GraphNode c = new GraphNode(2, true);
-		
-		ArrayList<GraphNode> al = new ArrayList<GraphNode>();
-		al.add(a);
-		al.add(b);
-		al.add(c);
-		
-		a.setNext(b);
-		b.setNext(c);
-		c.setNext(a);
-		g = new GraphNode[] {a, b, c};
-		//s.serialize(g);
-		Document d = s.serialize(al);
-		
-		d = new Document()
-		
-		i.inspect(al, false);
-		//System.out.println("\n\n derserializer\n");
-		i.inspect(de.deserialize(d), false);
-
-    	//a.initializeArray(new int[] {1, 2, 3, 4 ,5});
-    	//char[] c = new char[0];
-    	
-    	//referenced_objects_table.put(0, new Simple());
-    	//referenced_objects_table.put(1, new char[] {'a', 'b'});
-    	
-    	//s.serialize(r.createDefaultGraph());
-    	//s.serialize(new char[] {'a', 'b', 'c'});
-    	//s.serialize("abcde");
-    	//s.serialize(new char[0]);
-    	
-    	//System.out.println(String.valueOf(null));
-    	
     }
 
 }

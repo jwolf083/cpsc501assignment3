@@ -1,16 +1,18 @@
 package app;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ObjectCreator {
-	public void createObject() {
+	public Object createObject() {
 		Scanner keyboard = new Scanner(System.in);
 		Inspector inspector = new Inspector();
 		Object selected_object = selectObject(keyboard);
 		if (selected_object != null) {
 			editObject(selected_object, keyboard, inspector); 
 		}
+		return selected_object;
 		
 	}
 	public Object selectObject(Scanner keyboard) {
@@ -28,6 +30,40 @@ public class ObjectCreator {
 				case "1": 
 					chosen_object = new Simple();
 					break;
+				case "2": 
+					chosen_object = new ReferenceGraph().createDefaultGraph();
+					break;
+				case "3":
+					PrimitiveArray p = new PrimitiveArray();
+					p.initializeArray(new int[] {0, 1, 2, 3, 4, 5});
+					chosen_object = p;
+					break;
+				case "4": 
+					GraphNode[] g;
+			    	GraphNode a = new GraphNode(0, true);
+					GraphNode b = new GraphNode(1, false);
+					GraphNode c = new GraphNode(2, true);
+					a.setNext(b);
+					b.setNext(c);
+					c.setNext(a);
+					g = new GraphNode[] {a, b, c};
+					ReferenceArray ra = new ReferenceArray();
+					ra.initializeArray(g);
+					chosen_object = ra;
+					break;
+				case "5": 
+					ArrayList<GraphNode> al = new ArrayList<GraphNode>();
+					GraphNode a2 = new GraphNode(0, true);
+					GraphNode b2 = new GraphNode(1, false);
+					GraphNode c2 = new GraphNode(2, true);
+					a2.setNext(b2);
+					b2.setNext(c2);
+					c2.setNext(a2);
+					al.add(a2);
+					al.add(b2);
+					al.add(c2);
+					chosen_object = al;
+					break;
 				case "q":
 					break;
 				default:
@@ -43,22 +79,23 @@ public class ObjectCreator {
 		String choice = null;
 		Field selected_field = null;
 		
-		System.out.println("Your selected objects fields:\n");
-		inspector.inspectFields(obj, false);
-		
 		do {
+			System.out.println("Your selected objects fields/vals:\n");
+			inspector.inspectFields(obj, false);
 			System.out.println("Would you like to edit its primitive fields?: (y/n)");
 			choice = keyboard.nextLine();
 			
 			if (choice.equals("y")) {
 				selected_field = selectField(obj, inspector, keyboard);
 				selected_field.setAccessible(true);
-				if (!(selected_field.getType().equals(Boolean.class) 
-						|| selected_field.getType().equals(Integer.class))) {
+				if (!(selected_field.getType().equals(boolean.class) 
+						|| selected_field.getType().equals(int.class))) {
 					System.out.println("Please select a field with primitive type");
 					choice = null;
+				} else {
+					setNewValue(obj, keyboard, selected_field);
+					choice = null;
 				}
-				setNewValue(obj, keyboard, selected_field);
 			} else if (!choice.equals("n")) {
 				System.out.println("Sorry I didn't understand that, please enter your choice without brackets");
 				choice = null;
@@ -148,6 +185,8 @@ public class ObjectCreator {
 	
 	public static void main(String[] args) {
 		ObjectCreator o = new ObjectCreator();
-		o.createObject();
+		//o.createObject();
+		Inspector inspector = new Inspector();
+		inspector.inspect(o.createObject(), false);
 	}
 }
