@@ -4,6 +4,12 @@ public class GraphNode {
 	private GraphNode next;
 	private int prim_int;
 	private boolean prim_bool;
+	private GraphNode uninitialized;
+	private GraphNode _null = null;
+	
+	GraphNode() {
+		
+	}
 	
 	GraphNode(int _prim_int, boolean _prim_bool) {
 		this.next = null;

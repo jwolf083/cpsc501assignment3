@@ -15,12 +15,9 @@ import org.jdom2.output.XMLOutputter;
 
 public class Serializer {
 	private BitSet serialized_object_ids = new BitSet();
-	//private ArrayList<Object> referenced_objects = new ArrayList<Object>();
-	//private PriorityQueue<Object> referenced_objects = new PriorityQueue<Object>();
-	Queue referenced_objects = new Queue(); 
-	//Hashtable<Integer, Object> referenced_objects_table = new Hashtable<Integer, Object>();
+	private Queue referenced_objects = new Queue(); 
 	
-	public void serialize(Object obj) {
+	public Document serialize(Object obj) {
 		Element root = new Element("serialized");
 		Document document = new Document(root);
 		Object next_obj = obj;
@@ -32,6 +29,7 @@ public class Serializer {
 		}
 		
 		outputAsXml(document, System.out);
+		return document;
 	}
 	
 	private Element createObjectElement(Object obj) {
@@ -65,15 +63,48 @@ public class Serializer {
 		Object field_value;
 		Field[] fields;
 		
-		fields = object_class.getDeclaredFields();
+		fields = getAllFields(object_class);
 		for (Field f: fields) {
 			f.setAccessible(true);
 			try {
-				field_value = f.get(obj);
-				object_element.addContent(createFieldElement(field_value, f));
+				if (!Modifier.isStatic(f.getModifiers())) {
+					field_value = f.get(obj);
+					object_element.addContent(createFieldElement(field_value, f));
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private Field[] getAllFields(Class<?> obj_class) {
+		ArrayList<Field> all_fields = new ArrayList<Field>();
+		Field[] fields;
+		Field[] all_fields_arr;
+		
+		if (obj_class == Object.class || obj_class == null) {
+			return new Field[0];
+		} else {
+			appendToArrayList(all_fields, getAllFields(obj_class.getSuperclass()));
+			
+			fields = obj_class.getDeclaredFields();
+			for (Field f: fields) {
+				if (!Modifier.isStatic(f.getModifiers())) {
+					all_fields.add(f);
+				}
+			}
+			
+			all_fields.trimToSize();
+			all_fields_arr = new Field[all_fields.size()];
+			all_fields.toArray(all_fields_arr);
+		}
+		
+		return all_fields_arr;
+	}
+	
+	private void appendToArrayList(ArrayList<Field> arr_list, Field[] arr) {
+		for (Field f: arr) {
+			arr_list.add(f);
 		}
 	}
 	
@@ -81,7 +112,7 @@ public class Serializer {
 		Element field_element = new Element("field");
 		
 		field_element.setAttribute("name", field.getName());
-		field_element.setAttribute("declaringclass", String.valueOf(field.getDeclaringClass().getSimpleName()));
+		field_element.setAttribute("declaringclass", String.valueOf(field.getDeclaringClass().getName()));
 		
 		field_element.addContent(getObjectDataElement(field_value));
 		
@@ -164,7 +195,9 @@ public class Serializer {
     }
     
     public static void main(String[] args) {
+    	Inspector i = new Inspector();
     	Serializer s = new Serializer();
+    	Deserializer de = new Deserializer();
     	//s.serialize(new Simple());
     	ReferenceGraph r = new ReferenceGraph();
     	//PrimitiveArray a = new PrimitiveArray();
@@ -183,7 +216,13 @@ public class Serializer {
 		c.setNext(a);
 		g = new GraphNode[] {a, b, c};
 		//s.serialize(g);
-		s.serialize(al);
+		Document d = s.serialize(al);
+		
+		d = new Document()
+		
+		i.inspect(al, false);
+		//System.out.println("\n\n derserializer\n");
+		i.inspect(de.deserialize(d), false);
 
     	//a.initializeArray(new int[] {1, 2, 3, 4 ,5});
     	//char[] c = new char[0];

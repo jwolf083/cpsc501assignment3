@@ -8,8 +8,9 @@ public class ObjectCreator {
 		Scanner keyboard = new Scanner(System.in);
 		Inspector inspector = new Inspector();
 		Object selected_object = selectObject(keyboard);
-		editObject(selected_object, keyboard, inspector); 
-		inspector.inspect(selected_object, false);
+		if (selected_object != null) {
+			editObject(selected_object, keyboard, inspector); 
+		}
 		
 	}
 	public Object selectObject(Scanner keyboard) {
@@ -27,6 +28,8 @@ public class ObjectCreator {
 				case "1": 
 					chosen_object = new Simple();
 					break;
+				case "q":
+					break;
 				default:
 					System.out.println("Sorry I didn't understand that, please enter your choice without brackets");
 					choice = null;
@@ -40,8 +43,8 @@ public class ObjectCreator {
 		String choice = null;
 		Field selected_field = null;
 		
-		System.out.println("Your selected object:\n");
-		inspector.inspect(obj, false);
+		System.out.println("Your selected objects fields:\n");
+		inspector.inspectFields(obj, false);
 		
 		do {
 			System.out.println("Would you like to edit its primitive fields?: (y/n)");
@@ -50,6 +53,11 @@ public class ObjectCreator {
 			if (choice.equals("y")) {
 				selected_field = selectField(obj, inspector, keyboard);
 				selected_field.setAccessible(true);
+				if (!(selected_field.getType().equals(Boolean.class) 
+						|| selected_field.getType().equals(Integer.class))) {
+					System.out.println("Please select a field with primitive type");
+					choice = null;
+				}
 				setNewValue(obj, keyboard, selected_field);
 			} else if (!choice.equals("n")) {
 				System.out.println("Sorry I didn't understand that, please enter your choice without brackets");
